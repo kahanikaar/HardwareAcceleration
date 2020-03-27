@@ -144,5 +144,7 @@ int main()
      //cleaning up the api
      vaTerminate(display);
      XCloseDisplay(x11_display);
+	
+	return 0;
 
 }
