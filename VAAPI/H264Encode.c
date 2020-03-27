@@ -28,21 +28,10 @@
 int main(int argc, char *argv[])
 {
 	int size;
-	FILE* in,*out;
-	if(argc<5)printf("Encoding not possible! Lesser parameter provided!");
 	int frame_width=atoi(argv[1]);
 	int frame_heigh=atoi(argv[2]);
 	
-	if(!(in=fopen(argv[3],"r"))){
-	printf("\n\nError! Fail to open input file!");
-	return -1;
-	}
 
-	if(!(out=fopen(argv[4],"w+b"))){
-	printf("\n\nError! Fail to open output file!");
-	return -1;
-	}
-	
     //Initialising VAAPI
 	int major_ver, minor_ver;
 	Display *x11_display=XOpenDisplay(":0.0");
@@ -145,7 +134,7 @@ int main(int argc, char *argv[])
        unsigned char* pdata=coded_p+coded_offset;
 
        //saving encoded data
-       write(coded_fd,pdata,coded_size);
+       write(coded_p,pdata,coded_size);
        vaUnmapBuffer(va_dpy,coded_buf);
      }
 //releasing source data buffer
