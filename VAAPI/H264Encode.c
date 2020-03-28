@@ -23,13 +23,13 @@
 #include <va/va_fei_h264.h>
 #include <va/va_vpp.h>
 
-#define NUMSURFACES 3;
+#define NUMSURFACES 3
 
 int main(int argc, char *argv[])
 {
 	int size;
 	int frame_width=atoi(argv[1]);
-	int frame_heigh=atoi(argv[2]);
+	int frame_height=atoi(argv[2]);
 	
 
     //Initialising VAAPI
@@ -50,13 +50,14 @@ int main(int argc, char *argv[])
     
      //creating source data surfaces
      VASurfaceID surfaces[NUMSURFACES];
-     va_status=vaCreateSurfaces(display,frame_width,frame_height,VA_RT_FORMAT_YUV420,NUMSURFACES,surfaces);
+     va_status=vaCreateSurfaces(display,VA_RT_FORMAT_YUV420,frame_width,frame_height,surfaces,NUMSURFACES,attrib,2);
 
      //creating encoding context
      VAContextID context;
      va_status=vaCreateContext(display,config, frame_width,frame_height,0,surfaces,NUMSURFACES,&context);
 
      //creating coded data buffer
+     VABufferID* coded_buf;
      unsigned int codedbuf_size=(frame_width*frame_height*400)/256;
      va_status=vaCreateBuffer(display,context,VAEncCodedBufferType, codedbuf_size,1,NULL,&coded_buf);
 
@@ -64,77 +65,77 @@ int main(int argc, char *argv[])
      //accessing source surface data buffer
      VAImage image;
      unsigned char *pbuffer= NULL;
-     vaDeriveImage(display,surface_id,&image); //get data layout
+     vaDeriveImage(display,surfaces,&image); //get data layout
      vaMapBuffer(display,image.buf,&pbuffer);
-
+      
+     VASurfaceID src_surface_id;
+     uint32_t intra_count;
      //beginning to encode
      while(1)
      {
-     	vaBeginPicture(display, context,src_surface_id);
+     	int current_frame= vaBeginPicture(display, context,src_surface_id);
 
         //setting video sequence parameters
         if(current_frame==0){
         	VABufferID seq_buf_id;
         	VAEncSequenceParameterBufferH264 seq_h264={0};
         	seq_h264.seq_parameter_set_id=0;
-        	seq_h264.level_idc=SH_LEVEL_3;
+        	seq_h264.level_idc=41;
         	seq_h264.picture_width_in_mbs=frame_width/16;
         	seq_h264.picture_height_in_mbs=frame_height/16;
         	seq_h264.bits_per_second=14000000;
-        	seq_h264.frame_rate=frame_rate;
-        	seq_h264.initial_qp=24;
-        	seq_h264.min_qp=1;
-        	seq_h264.basic_unit_size=0;
         	seq_h264.intra_period=intra_count;
-        	seq_h264.vui_flag=0;
+        	seq_h264.vui_parameters_present_flag=0;
         	vaCreateBuffer(display,context,VAEncSequenceParameterBufferType,sizeof(seq_h264),1,&seq_h264,&seq_buf_id);
-        	vaRenderPicture(display,context,&sex_buf_id,1);
+        	vaRenderPicture(display,context,&seq_buf_id,1);
         }
 
 
         //setting picture parameters
-        VAEncPictureParameteBufferH264 pic_h264;
+        VAEncPictureParameterBufferH264 pic_h264;
         VASurfaceID src_surface_id,rec_surface_id,ref_surface_id;
         rec_surface_id=surfaces[NUMSURFACES-1];
         ref_surface_id=surfaces[NUMSURFACES-2];
-        pic_h264.reference_picture=ref_surface;
-        pic_h264.reconstructed_picture=rec_surface;
         pic_h264.coded_buf=coded_buf;
         pic_h264.picture_width=frame_width;
         pic_h264.picture_height=frame_height;
-        pic_h264.last_picture=(current_frame==frame_count-1);
-        vaCreateBuffer(va_dpy,context_id, VAEncPictureParameteBufferType,sizeof(pic_h264),1,&pic_h264,&pic_param_buf);
-        vaRenderPicture(va_dpy,context_id,&pic_param_buf,1);
+        pic_h264.last_picture=(current_frame==intra_count-1);
+        VADisplay va_dpy;
+        VABufferID pic_param_buf;
+        vaCreateBuffer(va_dpy,context, VAEncPictureParameterBufferType,sizeof(pic_h264),1,&pic_h264,&pic_param_buf);
+        vaRenderPicture(va_dpy,context,&pic_param_buf,1);
 
        //setting slice parameters
-       VAENCSliceParameterBuffer slice_h264;
+       VAEncSliceParameterBuffer slice_h264;
        slice_h264.start_row_number=0;
        slice_h264.slice_height=frame_height/16;
-       slice_h264.slice_flags.bits.is_intra=((i%intra_count)==0);
        slice_h264.slice_flags.bits.disable_deblocking_filter_idc=0;
-       vaCreateBuffer(va_dpy,context_id,VAENCSliceParameterBufferType,sizeof(slice_h264),1,&slice_h264,&slice_param_buf);
-       vaRenderPicture(va_dpy,context_id,&slice_param_buf,1);
+       VABufferID slice_param_buf;
+       vaCreateBuffer(va_dpy,context,VAEncSliceParameterBufferType,sizeof(slice_h264),1,&slice_h264,&slice_param_buf);
+       vaRenderPicture(va_dpy,context,&slice_param_buf,1);
 
        //encoding process
-       vaEndPicture(va_dpy, context_id);
+       vaEndPicture(va_dpy, context);
 
        //on completion of encoding a frame
        vaSyncSurface(display,src_surface_id);
+       VASurfaceStatus surface_status;
        vaQuerySurfaceStatus(va_dpy,src_surface_id,&surface_status);
 
 
        //saving coded buffer
        //accessing coded buffer data
        void *coded_p=NULL;
-       vaMapBuffer(va_dpy,coded_buf_id,&coded_p);
+       vaMapBuffer(va_dpy,coded_buf,&coded_p);
 
        //getting coded buffer size, offset and video data pointer
-       coded_size=*((unsigned long*)coded_p);
+       codedbuf_size=*((unsigned long*)coded_p);
+       int coded_offset;
        coded_offset=*((unsigned long*)(coded_p+4));
        unsigned char* pdata=coded_p+coded_offset;
 
        //saving encoded data
-       write(coded_p,pdata,coded_size);
+       write(coded_p,pdata,codedbuf_size);
        vaUnmapBuffer(va_dpy,coded_buf);
      }
 //releasing source data buffer
