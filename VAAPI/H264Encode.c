@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
     //Initialising VAAPI
 	int major_ver, minor_ver;
-	Display *x11_display=XOpenDisplay(":0.0");
+	VADisplay *x11_display=XOpenDisplay(":0.0");
 	VADisplay display=vaGetDisplay(x11_display);
 	VAStatus va_status =vaInitialize(display,&major_ver, &minor_ver);
 
