@@ -91,11 +91,11 @@ int* num_attribs;
         VAPictureParameterBufferMPEG2 *picture_param;
         FILE *in;
         in=fopen(argv[1],"r");        
+        VABufferID iq_buf;
         uint8_t* info;
         fread((uint8_t*)info,720*480,1,in);
         vaCreateBuffer(dpy, context,VAPictureParameterBufferType,720*480,2,info,&picture_buf);
-     vaBufferData(dpy, picture_buf, sizeof(VAPictureParameterBufferMPEG2), NULL);
-     
+    
         vaMapBuffer(dpy, picture_buf, (void**)&picture_param);
         picture_param->horizontal_size = 720;
         picture_param->vertical_size = 480;
@@ -105,8 +105,9 @@ int* num_attribs;
 
         // Creating an IQ matrix buffer for this frame *
         VAIQMatrixBufferMPEG2 *iq_matrix;
+
         vaCreateBuffer(dpy,context, VAIQMatrixBufferType, 720*480,2,info,&iq_buf);
-        vaBufferData(dpy, iq_buf, sizeof(VAIQMatrixBufferMPEG2), NULL);
+     
         vaMapBuffer(dpy, iq_buf,(void**) &iq_matrix);
 
         vaUnmapBuffer(dpy, iq_buf);
@@ -127,7 +128,7 @@ int* num_attribs;
                 VABufferID slice_param_buf;
                 VASliceParameterBufferMPEG2 *slice_param;
                 vaCreateBuffer(dpy,context, VASliceParameterBufferType,720*480,2,info, &slice_param_buf);
-                vaBufferData(dpy, slice_param_buf, sizeof(VASliceParameterBufferMPEG2), NULL);
+             
                 vaMapBuffer(dpy, slice_param_buf,(void**) &slice_param);
                 slice_param->slice_data_offset = 0;
 
@@ -141,7 +142,7 @@ int* num_attribs;
                 unsigned char *slice_data;
                 VABufferID slice_data_buf;
                 vaCreateBuffer(dpy,context, VASliceDataBufferType,720*480,2,info, &slice_data_buf);
-                vaBufferData(dpy, slice_data_buf, sizeof(VASliceDataBufferType), NULL);
+              
                 vaMapBuffer(dpy, slice_data_buf,(void**) &slice_data);
                 // decoder fill in slice_data 
                 vaUnmapBuffer(dpy, slice_data_buf);
