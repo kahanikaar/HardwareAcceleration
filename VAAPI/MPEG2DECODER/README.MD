@@ -39,7 +39,7 @@ First argument after the program's name is the path of the video file and then f
       -g              specifies substitute file is a large concatendated one.
       -e              substitution flag
       ref.pic         filename of substitution sequence
-      bitstream.mpg   bitstream
+      test.m2v        bitstream file (main source file to be decoded)
       test%d          output file pattern
 
           
