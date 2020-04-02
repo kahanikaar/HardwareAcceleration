@@ -38,9 +38,9 @@ First argument after the program's name is the path of the video file and then f
       -f              specifies field interleaved format
       -g              specifies substitute file is a large concatendated one.
       -e              substitution flag
-      ref.pic         filename of substitution sequence
       test.m2v        bitstream file (main source file to be decoded)
       test%d          output file pattern
+      ref.pic         filename of substitution sequence
 
           
 ### Running without specifying any modes or argument stating the file to be decoded will give the following output
