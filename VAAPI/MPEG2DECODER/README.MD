@@ -36,7 +36,6 @@ First argument after the program's name is the path of the video file and then f
      where:
       -o0             specifies .Y, .U, .V input
       -f              specifies field interleaved format
-      -b              is the bitstream flag
       -g              specifies substitute file is a large concatendated one.
       -e              substitution flag
       ref.pic         filename of substitution sequence
