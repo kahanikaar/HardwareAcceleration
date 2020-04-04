@@ -1,7 +1,19 @@
 # MPEG2Decoder
-
-## For Compiling the code
-    gcc decode.c -lm
+Main file containing the code for the decoder : decode.c
+## Compilation Process
+   ### Creation of Object files
+       gcc -c va.c
+       gcc -c va_compat.c
+       gcc -c va_fool.c
+       gcc -c va_str.c
+       gcc -c va_trace.c
+       gcc -c decode.c
+  This thus creates the necessary object files to be used to linked.
+  
+  ### Linking the created object files
+       gcc -o a.out decode.o va.o va_compat.o va_fool.o va_str.o va_trace.o -lm -lavcodec -lexpat -lz -lswresample -lswscale -lavutil -ldl
+  This creates the output file a.out by linking the necessary libraries and object files.     
+      
 
 ## For running the program we have different modes
 First argument after the program's name is the path of the video file and then follow the various modes to be used for the decoder to work
