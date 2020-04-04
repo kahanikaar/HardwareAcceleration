@@ -19,7 +19,7 @@ Main file containing the code for the decoder : decode.c
 First argument after the program's name is the path of the video file and then follow the various modes to be used for the decoder to work
 
 #### 1)  to decode a bitstream with double precision IDCT, such as to create a reference reconstruction set of frames:
-        ./a.out test.a2v -r -f -o0 rec%d  
+        ./a.out test.m2v -r -f -o0 rec%d  
   
 #### 2)  to decode a bitstream with fast integer IDCT, such as to create a test reconstruction set of frames:
          ./a.out test.m2v -f -o0 rec%d 
